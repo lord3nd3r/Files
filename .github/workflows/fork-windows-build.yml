@@ -18,9 +18,18 @@ on:
   push:
     branches:
       - 'fix/**'
-      # A push of this file on main builds the default fix ref. The workflow
-      # file is not on the fix branch, so a push there cannot see this trigger.
+      # This file lives only on main, so a fix-branch push cannot start it.
+      # Pushing this file on main builds the default fix ref instead.
       - main
+    paths:
+      - '.github/workflows/fork-windows-build.yml'
+      - 'src/**'
+      - 'tests/**'
+      - 'Files.slnx'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'global.json'
+      - 'nuget.config'
 
 run-name: Windows build ${{ github.event.inputs.ref || github.ref_name }}
 
@@ -35,11 +44,6 @@ jobs:
   build:
 
     runs-on: windows-2025
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      startsWith(github.ref, 'refs/heads/fix/') ||
-      contains(github.event.head_commit.added, '.github/workflows/fork-windows-build.yml') ||
-      contains(github.event.head_commit.modified, '.github/workflows/fork-windows-build.yml')
 
     steps:
 
