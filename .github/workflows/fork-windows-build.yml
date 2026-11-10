@@ -18,6 +18,9 @@ on:
   push:
     branches:
       - 'fix/**'
+      # A push of this file on main builds the default fix ref. The workflow
+      # file is not on the fix branch, so a push there cannot see this trigger.
+      - main
 
 run-name: Windows build ${{ github.event.inputs.ref || github.ref_name }}
 
@@ -32,13 +35,18 @@ jobs:
   build:
 
     runs-on: windows-2025
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.ref, 'refs/heads/fix/') ||
+      contains(github.event.head_commit.added, '.github/workflows/fork-windows-build.yml') ||
+      contains(github.event.head_commit.modified, '.github/workflows/fork-windows-build.yml')
 
     steps:
 
     - name: Checkout the repository
       uses: actions/checkout@v6
       with:
-        ref: ${{ github.event.inputs.ref || github.sha }}
+        ref: ${{ github.event.inputs.ref || (startsWith(github.ref, 'refs/heads/fix/') && github.sha) || 'fix/unobserved-task-crash' }}
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v3
