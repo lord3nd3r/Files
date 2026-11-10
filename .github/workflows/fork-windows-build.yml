@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 # Fork-only Windows build. This file stays on the fork's main branch.
-# It checks out the requested ref and builds Files.App Release x64.
+# A push to main builds that commit. workflow_dispatch can build another ref.
 # Signing, packaging, symbol upload, and UI tests are intentionally omitted.
 
 name: Fork Windows build
@@ -12,24 +12,12 @@ on:
     inputs:
       ref:
         description: 'Branch, tag, or commit to build'
-        required: true
-        default: 'fix/unobserved-task-crash'
+        required: false
+        default: 'main'
         type: string
   push:
     branches:
-      - 'fix/**'
-      # This file lives only on main, so a fix-branch push cannot start it.
-      # Pushing this file on main builds the default fix ref instead.
       - main
-    paths:
-      - '.github/workflows/fork-windows-build.yml'
-      - 'src/**'
-      - 'tests/**'
-      - 'Files.slnx'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - 'global.json'
-      - 'nuget.config'
 
 run-name: Windows build ${{ github.event.inputs.ref || github.ref_name }}
 
@@ -50,7 +38,7 @@ jobs:
     - name: Checkout the repository
       uses: actions/checkout@v6
       with:
-        ref: ${{ github.event.inputs.ref || (startsWith(github.ref, 'refs/heads/fix/') && github.sha) || 'fix/unobserved-task-crash' }}
+        ref: ${{ github.event.inputs.ref || github.sha }}
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v3
